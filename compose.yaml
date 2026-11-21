@@ -1,0 +1,15 @@
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATABASE_PATH: /var/lib/flair/flair.sqlite
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - flair-data:/var/lib/flair
+volumes:
+  flair-data:
