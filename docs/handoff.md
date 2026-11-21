@@ -7,6 +7,10 @@
 | server.cjs、store.cjs | 身份认证、角色校验、项目修订、镜像快照、版本分享、附件存储 |
 | scripts/verify-workbench.cjs | 162 个组合与预算下降、过期档期、面积补录、覆盖去重、导出的回归 |
 | scripts/verify-online.cjs | 服务端应用处理函数、两项目独立、并发版本检查、权限、固定分享、撤回和重启持久化 |
+| client.html、assets/client.js、assets/client.css | 客户自助入口：七要素表单、冲突调整、草稿版本、导出与分享 |
+| ops.html、assets/ops.js | 客户草稿审核、执行配置、车级排车、变更单预览与应用 |
+| lib/*.cjs | 客户入口规则选点与差异、车级调度、可选 AI、草稿渲染、对应接口 |
+| scripts/verify-selfserve.cjs | 规则、调度、AI 回退、客户与团队接口、跨项目权限、重启恢复 |
 | Dockerfile、compose.yaml | 容器构建与单实例持久化 |
 
 ## 上线前验证

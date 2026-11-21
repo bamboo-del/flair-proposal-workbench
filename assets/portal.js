@@ -6,7 +6,7 @@
     customer: "客户与品牌", business: "生意目标", goal: "Campaign 主目标",
     audience: "目标人群与活动区域", budget: "时间与预算", media: "媒体范围", success: "成功衡量与监测",
   };
-  const roles = { admin: "管理员", editor: "编辑", viewer: "只读" };
+  const roles = { admin: "管理员", editor: "编辑", viewer: "只读", client: "客户" };
   const priceGrades = { bus: ["S", "A++", "A+", "AA", "A"], metro: ["A++", "A+", "AA", "A"] };
   let me, project, panel, selectedVersion, baseline;
   const canEdit = () => project && !project.archived && me.role !== "viewer";
@@ -257,8 +257,10 @@
       $("signInPanel").hidden = false;
       return;
     }
+    if (me.role === "client") { location.href = "/client"; return; }
     $("signInPanel").hidden = true;
     $("signOut").hidden = false;
+    $("opsLink").hidden = false;
     $("accountLabel").textContent = me.name + " · " + roles[me.role];
     await home();
   }

@@ -3,13 +3,17 @@ const path = require("node:path");
 const { readFile } = require("node:fs/promises");
 const { openStore } = require("./store.cjs");
 const { engine, normalize, FIELDS, customerHtml, pad } = require("./proposal.cjs");
+const { createRoutes } = require("./lib/routes.cjs");
 
 const MIME = { html: "text/html", js: "text/javascript", css: "text/css" };
 const assets = Object.fromEntries([
   "index.html", "assets/app.js", "assets/data.js", "assets/styles.css", "assets/workbench.css",
   "assets/vendor/jszip.min.js", "assets/portal.js", "assets/portal.css",
+  "client.html", "ops.html", "assets/client.js", "assets/client.css", "assets/ops.js",
 ].map((file) => ["/" + file, file]));
 assets["/"] = "index.html";
+assets["/client"] = "client.html";
+assets["/ops"] = "ops.html";
 
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -81,6 +85,7 @@ function createApplication(store, env = process.env, request = fetch) {
     const snapshot = JSON.stringify(data);
     run("INSERT OR IGNORE INTO mirror_batches VALUES (?,?,?,?,?,?)", secret(), project, hash(snapshot), snapshot, date(), user);
   }
+  const routes = createRoutes({ store, env, request, fail, json, readJson, useLimit });
 
   return async (req, res) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
@@ -102,6 +107,8 @@ function createApplication(store, env = process.env, request = fetch) {
         res.setHeader("X-Robots-Tag", "noindex, nofollow");
         return res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" }).end(customerHtml(JSON.parse(row.proposal), "/p/" + p[1], url.searchParams.get("budget")));
       }
+
+      if (p[0] === "d" && p.length === 2 && method === "GET") return routes.sharedDraft(res, p[1]);
 
       if (p[0] !== "api") {
         const file = Object.hasOwn(assets, url.pathname) ? assets[url.pathname] : null;
@@ -138,13 +145,22 @@ function createApplication(store, env = process.env, request = fetch) {
         return json(res, { signedOut: true });
       }
       if (p[1] === "session" && method === "GET") return json(res, { ...me, ai: Boolean(env.DEEPSEEK_API_KEY && env.DEEPSEEK_MODEL) });
+      // 客户账号只能使用自助入口；团队账号不经过客户入口。
+      if (me.role === "client") {
+        if (p[1] !== "client") fail(403, "客户账号仅可使用客户自助入口。");
+        return await routes.client(req, res, url, p, me);
+      }
+      if (p[1] === "client") fail(403, "客户自助入口仅供客户账号使用。");
       if (p[1] === "team") {
         if (me.role !== "admin") fail(403, "仅管理员可管理成员。");
-        if (method === "GET") return json(res, query("SELECT name,role,created FROM users ORDER BY name"));
+        if (method === "GET") return json(res, query("SELECT u.name,u.role,u.created,group_concat(a.project_id) AS projects FROM users u LEFT JOIN client_access a ON a.name=u.name GROUP BY u.name ORDER BY u.name")
+          .map((row) => ({ ...row, projects: row.projects ? row.projects.split(",") : [] })));
         if (method === "POST") {
           const input = await readJson(req, 8192);
-          if (!["editor", "viewer"].includes(input?.role) || !await store.addUser(input.name, input.password, input.role)) fail(422, "检查账号格式、密码及账号是否已存在。");
-          return json(res, { name: input.name, role: input.role }, 201);
+          if (!["editor", "viewer", "client"].includes(input?.role) || !await store.addUser(input.name, input.password, input.role)) fail(422, "检查账号格式、密码及账号是否已存在。");
+          const projects = input.role === "client" && Array.isArray(input.projects) ? input.projects.filter((id) => typeof id === "string" && get("SELECT 1 FROM projects WHERE id=?", id)) : [];
+          for (const id of projects) run("INSERT OR IGNORE INTO client_access VALUES (?,?,?)", input.name, id, date());
+          return json(res, { name: input.name, role: input.role, projects }, 201);
         }
         if (method === "DELETE" && p.length === 3) {
           if (!run("DELETE FROM users WHERE name=? AND role!='admin'", p[2]).changes) fail(404, "成员不存在或无法移除。");
@@ -172,6 +188,10 @@ function createApplication(store, env = process.env, request = fetch) {
       if (!project) fail(404, "项目不存在。");
       if (p.length === 3 && method === "GET") return json(res, project);
       const canEdit = me.role !== "viewer" && !project.archived;
+      if (["client-drafts", "clients", "dispatch", "changes"].includes(p[3])) {
+        const handled = await routes.team(req, res, url, p, me, project, canEdit);
+        if (handled) return handled;
+      }
       if (p.length === 3 && method === "PUT" && canEdit) {
         const input = await readJson(req);
         const name = pad(input?.name, 100);
