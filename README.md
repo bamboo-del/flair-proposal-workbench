@@ -16,11 +16,16 @@
 
 创建练习项目时可主动选择合成数据。业务项目从空数据开始，刊例未配置时不出价。红豆和覆盖导出走私有工作区。开源仓库只含测试用例、代码和合成数据。
 
+## 客户自助与执行调度
+
+客户账号登录 `/client`，选择七要素需求后生成可预览、导出、分享的提案草稿，改预算、档期或媒体会生成新版本并显示差异。团队在 `/ops` 审核客户草稿，按车级台账排车，用统一的变更单处理进保、换线、停工等变动。详见 [客户自助与执行调度](docs/selfserve-dispatch.md)。本地演示可运行 `npm run demo:seed`。
+
 ## 团队交接与部署
 
 - [Claude Code 接手](CLAUDE.md)
 - [主办方口径与验收](docs/acceptance.md)
 - [数据契约](docs/data-contract.md)
+- [客户自助与执行调度](docs/selfserve-dispatch.md)
 - [上线前检查](docs/handoff.md)
 - [Sealos 与阿里云部署](docs/deployment.md)
 

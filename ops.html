@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>执行调度与变更单 · Flair Proposal</title>
+    <link rel="stylesheet" href="/assets/portal.css" />
+    <link rel="stylesheet" href="/assets/client.css" />
+  </head>
+  <body class="ss-app">
+    <header class="product-bar"><strong>Flair Proposal</strong><span>执行调度 · 变更单 · 客户草稿审核</span><a class="portal-button secondary" href="/">返回工作台</a><span id="whoami"></span></header>
+    <main class="ss-main ss-ops">
+      <p id="msg" role="status" aria-live="polite"></p>
+      <section class="portal-card sign-in" id="loginPanel" hidden>
+        <h1>团队登录</h1>
+        <form id="loginForm"><label>账号<input name="name" autocomplete="username" required /></label><label>密码<input name="password" type="password" autocomplete="current-password" required /></label><button class="portal-button" type="submit">登录</button></form>
+      </section>
+
+      <section id="appPanel" hidden>
+        <div class="ss-toolbar"><label>项目<select id="projectSelect"></select></label></div>
+
+        <section class="ss-card" id="clientCard">
+          <h2>客户授权与客户草稿</h2>
+          <form id="grantForm" class="ss-row" hidden>
+            <label>客户账号（先在工作台「团队成员」中以客户角色创建）<input name="name" pattern="[a-z][a-z0-9._-]{2,49}" required /></label>
+            <label style="flex:0 0 auto;align-self:end"><button class="portal-button secondary" type="submit">授权访问本项目</button></label>
+          </form>
+          <div id="grantRows" class="ss-muted"></div>
+          <div id="draftRows" class="ss-muted"></div>
+          <article class="ss-proposal" id="draftView" hidden></article>
+        </section>
+
+        <section class="ss-card">
+          <h2>执行配置（按项目或合同）</h2>
+          <form id="configForm">
+            <div class="ss-row">
+              <label>线路<input name="route" required maxlength="40" /></label>
+              <label>上刊日<input type="date" name="startDate" required /></label>
+              <label>在刊天数<input type="number" name="duration" min="7" max="180" required /></label>
+              <label>起投量（台）<input type="number" name="minUnits" min="1" max="200" required /></label>
+              <label>单夜施工上限（台）<input type="number" name="perNight" min="1" max="50" required /></label>
+              <label>上刊前可施工晚数<input type="number" name="constructionNights" min="1" max="14" required /></label>
+              <label>备用缓冲（台）<input type="number" name="buffer" min="0" max="20" required /></label>
+            </div>
+            <div class="ss-row">
+              <label>施工窗口开始<input type="time" name="windowFrom" required /></label>
+              <label>施工窗口结束<input type="time" name="windowTo" required /></label>
+              <label>每车最少作业小时<input type="number" name="minHours" min="1" max="10" step="0.5" required /></label>
+              <label>画面形式<input name="format" maxlength="40" /></label>
+              <label>画面适配车型<input name="artworkModel" maxlength="40" /></label>
+              <label>误 N 天<input type="number" name="miss" min="1" max="10" required /></label>
+              <label>补 M 天<input type="number" name="compensate" min="0" max="20" required /></label>
+            </div>
+            <div class="ss-row">
+              <label class="ss-wide">规则来源（合同条款或项目约定）<input name="ruleSource" maxlength="160" /></label>
+              <label class="ss-wide">已登记停工日期（每行：日期 原因）<textarea name="stoppages" rows="2" placeholder="2027-05-08 城市管制"></textarea></label>
+            </div>
+            <div class="ss-row">
+              <label><span>车级台账来源</span>
+                <select name="fleetSource"><option value="synthetic">合成车辆（演示，明确标记）</option><option value="csv">粘贴车级台账 CSV</option></select></label>
+              <label>合成车辆数<input type="number" name="count" min="1" max="60" value="12" /></label>
+            </div>
+            <label>车级台账 CSV（列：id,plate,route,model,format,status,depotReturn,idleDays）<textarea name="fleetCsv" rows="3" placeholder="id,plate,route,model,format,status,depotReturn,idleDays"></textarea></label>
+            <div class="portal-actions"><button class="portal-button" type="submit">保存配置并生成初始计划</button><span class="ss-muted">修改配置会让未处理的变更单过期。</span></div>
+          </form>
+        </section>
+
+        <section class="ss-card" id="planCard" hidden>
+          <h2>当前执行计划 <span id="planStatus" class="ss-status"></span></h2>
+          <div id="planView"></div>
+        </section>
+
+        <section class="ss-card" id="changeCard" hidden>
+          <h2>变更单（统一入口）</h2>
+          <form id="changeForm" class="ss-row">
+            <label>类型<select name="type"></select></label>
+            <label>车辆<select name="vehicle"></select></label>
+            <label>开始<input type="date" name="from" required /></label>
+            <label>结束<input type="date" name="to" /></label>
+            <label>停工夜（逗号分隔，管制／雨天用）<input name="dates" placeholder="2027-05-07,2027-05-08" /></label>
+            <label class="ss-wide">说明<input name="note" maxlength="300" /></label>
+            <label style="flex:0 0 auto;align-self:end"><button class="portal-button" type="submit">生成变更预览</button></label>
+          </form>
+          <div id="previewView"></div>
+          <h3>变更记录</h3>
+          <div id="changeRows" class="ss-muted"></div>
+        </section>
+      </section>
+    </main>
+    <script src="/assets/ops.js"></script>
+  </body>
+</html>

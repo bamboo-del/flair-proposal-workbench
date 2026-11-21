@@ -1,7 +1,8 @@
 FROM node:24-alpine
 WORKDIR /app
 RUN mkdir -p /var/lib/flair && chown node:node /var/lib/flair
-COPY --chown=node:node package.json index.html server.cjs store.cjs proposal.cjs ./
+COPY --chown=node:node package.json index.html client.html ops.html server.cjs store.cjs proposal.cjs ./
+COPY --chown=node:node lib ./lib
 COPY --chown=node:node assets ./assets
 ENV NODE_ENV=production HOST=0.0.0.0 PORT=3000 DATABASE_PATH=/var/lib/flair/flair.sqlite
 EXPOSE 3000

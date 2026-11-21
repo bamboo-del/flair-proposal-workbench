@@ -8,7 +8,7 @@ const secret = () => randomBytes(24).toString("base64url");
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 const date = () => new Date().toISOString();
 const username = (value) => typeof value === "string" && /^[a-z][a-z0-9._-]{2,49}$/.test(value);
-const roles = ["admin", "editor", "viewer"];
+const roles = ["admin", "editor", "viewer", "client"];
 const defaultLifetime = 12 * 60 * 60 * 1000;
 
 async function passwordHash(password, salt = secret()) {

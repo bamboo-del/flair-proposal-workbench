@@ -19,6 +19,7 @@
     <header class="product-bar">
       <strong>Flair Proposal</strong><span id="accountLabel"></span>
       <button class="portal-button secondary" id="homeLink" type="button" hidden>项目列表</button>
+      <a class="portal-button secondary" id="opsLink" href="/ops" hidden>执行调度与客户草稿</a>
       <button class="portal-button secondary" id="signOut" type="button" hidden>退出</button>
     </header>
     <main class="portal-main" id="portal">
@@ -32,7 +33,7 @@
         <div id="projects" class="project-rows"></div>
         <details id="teamPanel" class="portal-card" hidden><summary>团队成员与权限</summary>
           <form id="teamForm" class="portal-row"><label>账号<input name="name" required pattern="[a-z][a-z0-9._-]{2,49}"></label><label>初始密码<input name="password" type="password" minlength="12" required autocomplete="new-password"></label>
-          <label>角色<select name="role"><option value="editor">编辑</option><option value="viewer">只读</option></select></label><button class="portal-button">添加成员</button></form><div id="teamRows"></div>
+          <label>角色<select name="role"><option value="editor">编辑</option><option value="viewer">只读</option><option value="client">客户（在执行调度页授权项目）</option></select></label><button class="portal-button">添加成员</button></form><div id="teamRows"></div>
         </details>
       </section>
       <section id="projectPanel" hidden>

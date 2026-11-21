@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>客户自助提案 · Flair Proposal</title>
+    <link rel="stylesheet" href="/assets/portal.css" />
+    <link rel="stylesheet" href="/assets/client.css" />
+  </head>
+  <body class="ss-app">
+    <header class="product-bar"><strong>Flair Proposal</strong><span>客户自助提案 · 选需求 → 看方案 → 改条件 → 生成新方案</span><span id="whoami"></span></header>
+    <main class="ss-main">
+      <p id="msg" role="status" aria-live="polite"></p>
+
+      <section class="portal-card sign-in" id="loginPanel" hidden>
+        <h1>客户登录</h1>
+        <p class="ss-muted">账号由提案团队开通，只能看到被授权的项目与自己生成的草稿。</p>
+        <form id="loginForm">
+          <label>账号<input name="name" autocomplete="username" required /></label>
+          <label>密码<input name="password" type="password" autocomplete="current-password" required /></label>
+          <button class="portal-button" type="submit">登录</button>
+        </form>
+      </section>
+
+      <section id="appPanel" hidden>
+        <div class="ss-toolbar">
+          <label>项目<select id="projectSelect"></select></label>
+          <span id="aiState" class="ss-chip"></span>
+          <button class="portal-button secondary" type="button" id="resetForm">恢复默认值</button>
+          <button class="portal-button secondary" type="button" id="logout">退出</button>
+        </div>
+
+        <div class="ss-layout">
+          <form id="briefForm" class="ss-form" novalidate>
+            <fieldset class="ss-card" id="quickCard">
+              <legend>用一段话描述需求（可选）</legend>
+              <textarea id="quickText" rows="3" maxlength="2000" placeholder="例：某连锁咖啡品牌 6 月中旬上新品，想在静安寺、南京西路做到店引流，主要是上班族，预算 150 万，投一个月，公交和地铁都要，看核销和扫码。"></textarea>
+              <label class="inline-check"><input type="checkbox" id="quickAnon" /> 已去除真实客户名、联系人和成交价</label>
+              <div class="portal-actions"><button class="portal-button secondary" type="button" id="quickExtract">提取到表单</button><span id="quickNote" class="ss-muted"></span></div>
+            </fieldset>
+
+            <fieldset class="ss-card" data-key="customer"><legend>① 客户与品牌</legend>
+              <div class="ss-row">
+                <label>行业<select name="industry"></select></label>
+                <label>行业补充<input name="industryNote" maxlength="80" placeholder="如：精品咖啡连锁" /></label>
+                <label>品牌类型（匿名）<input name="brandType" maxlength="80" placeholder="如：连锁咖啡品牌" /></label>
+              </div>
+            </fieldset>
+            <fieldset class="ss-card" data-key="business"><legend>② 生意目标</legend>
+              <div class="ss-row"><label>生意目标<select name="businessGoal"></select></label>
+              <label class="ss-wide">商业问题说明<input name="businessNote" maxlength="300" placeholder="如：新品在核心商圈的认知不足" /></label></div>
+            </fieldset>
+            <fieldset class="ss-card" data-key="campaignGoal"><legend>③ 活动目标（选一项）</legend><div class="ss-choices" id="campaignGoalBox"></div></fieldset>
+            <fieldset class="ss-card" data-key="audiences"><legend>④ 目标人群与门店／商圈</legend>
+              <div class="ss-choices" id="audienceBox"></div>
+              <p class="ss-muted">勾选目标商圈，点「优先」提高权重。</p>
+              <div class="ss-zones" id="zoneBox"></div>
+            </fieldset>
+            <fieldset class="ss-card" data-key="window"><legend>⑤ 投放档期与预算</legend>
+              <div class="ss-row">
+                <label>开始日期<input type="date" name="startDate" min="2027-01-01" max="2027-12-31" required /></label>
+                <label>投放天数<select name="duration"></select></label>
+                <label>预算（万元）<input type="number" name="budgetWan" min="30" max="2000" step="10" required /></label>
+              </div>
+              <input type="range" id="budgetRange" min="30" max="1000" step="10" aria-label="预算滑杆" />
+            </fieldset>
+            <fieldset class="ss-card" data-key="media"><legend>⑥ 媒体组合</legend>
+              <div class="ss-choices">
+                <label class="inline-check"><input type="checkbox" name="media" value="bus" /> 公交车身</label>
+                <label class="inline-check"><input type="checkbox" name="media" value="metro" /> 地铁出入口</label>
+                <label>车身形式<select name="busFormat"></select></label>
+              </div>
+            </fieldset>
+            <fieldset class="ss-card" data-key="kpis"><legend>⑦ 希望衡量的结果</legend>
+              <div class="ss-choices" id="kpiBox"></div>
+              <label>补充说明<input name="kpiNote" maxlength="200" placeholder="如：活动页 UTM 由我方提供" /></label>
+            </fieldset>
+            <fieldset class="ss-card" data-key="resources"><legend>线路与点位</legend>
+              <div class="ss-choices">
+                <label class="inline-check"><input type="radio" name="mode" value="auto" /> 系统推荐（可另加必选资源）</label>
+                <label class="inline-check"><input type="radio" name="mode" value="manual" /> 只用我指定的资源</label>
+              </div>
+              <div class="ss-row"><label class="ss-wide">筛选资源<input id="resourceFilter" placeholder="输入线路号、站名或商圈" /></label>
+                <label class="inline-check"><input type="checkbox" id="onlyMine" /> 只看已指定</label></div>
+              <div class="ss-resources" id="resourceBox"></div>
+            </fieldset>
+          </form>
+
+          <aside class="ss-side">
+            <section class="ss-card ss-sticky" id="checkCard">
+              <h2>实时检查</h2>
+              <div id="checkSummary" class="ss-muted">正在计算…</div>
+              <div id="conflictBox"></div>
+              <div id="warningBox"></div>
+              <label>方案标题<input id="draftTitle" maxlength="80" placeholder="默认：品牌 · 户外投放方案" /></label>
+              <button class="portal-button ss-primary" type="button" id="generate">生成方案</button>
+              <p class="ss-muted" id="parentNote"></p>
+            </section>
+            <section class="ss-card" id="historyCard">
+              <h2>我的草稿</h2>
+              <div id="historyBox" class="ss-muted">暂无草稿。</div>
+            </section>
+          </aside>
+        </div>
+
+        <section class="ss-card" id="resultCard" hidden>
+          <div class="ss-toolbar">
+            <strong id="resultTitle"></strong>
+            <a class="portal-button secondary" id="exportHtml" href="#">导出 HTML</a>
+            <a class="portal-button secondary" id="exportCsv" href="#">导出资源 CSV</a>
+            <a class="portal-button secondary" id="exportJson" href="#">导出 JSON</a>
+            <button class="portal-button secondary" type="button" id="printDraft">打印 / PDF</button>
+            <label class="ss-inline">有效期<select id="shareDays"><option value="1">1 天</option><option value="7" selected>7 天</option><option value="30">30 天</option></select></label>
+            <button class="portal-button secondary" type="button" id="shareDraft">分享只读链接</button>
+            <button class="portal-button secondary" type="button" id="reviseDraft">基于此版修改</button>
+            <button class="portal-button" type="button" id="submitDraft">提交团队审核</button>
+          </div>
+          <p id="shareLink" class="ss-muted"></p>
+          <article class="ss-proposal" id="proposal"></article>
+        </section>
+      </section>
+    </main>
+    <script src="/assets/client.js"></script>
+  </body>
+</html>
